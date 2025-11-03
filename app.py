@@ -1,3 +1,4 @@
+$code = @'
 from flask import Flask, request, jsonify
 import smtplib
 import os
@@ -6,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 
-# Load environment variables
+# Load environment variables (set in Render environment settings)
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
@@ -17,7 +18,7 @@ def home():
 @app.route('/send-email', methods=['POST'])
 def send_email():
     try:
-        data = request.json
+        data = request.get_json()
         recipient = data.get('to')
         subject = data.get('subject')
         body = data.get('body')
@@ -32,7 +33,7 @@ def send_email():
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
-        # Connect to Gmail SMTP server
+        # Connect to Gmail SMTP server and send
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
             server.starttls()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
@@ -45,3 +46,6 @@ def send_email():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
+'@
+
+Set-Content -Path .\app.py -Value $code -Encoding UTF8
